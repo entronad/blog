@@ -14,3 +14,41 @@
 - 取消请求
 - 自动转换JSON数据
 - 支持客户端XSRF攻击防护
+
+
+
+# 拦截请求与响应
+
+\lib\core\Axios.js
+
+18
+
+19
+
+46
+
+# 转换请求与响应数据
+
+\lib\core\dispatchRequest.js
+
+30
+
+\lib\core\transformData.js
+
+# 取消请求
+
+\lib\core\dispatchRequest.js
+
+11
+
+# 自动转换JSON数据
+
+\lib\defaults.js
+
+56
+
+# 支持客户端XSRF攻击防护
+
+\lib\defaults.js
+
+68
