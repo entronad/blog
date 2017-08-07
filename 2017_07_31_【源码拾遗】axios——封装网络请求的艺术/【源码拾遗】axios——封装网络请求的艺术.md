@@ -1,11 +1,5 @@
-- Make [XMLHttpRequests](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) from the browser
-- Make [http](http://nodejs.org/api/http.html) requests from node.js
-- Supports the [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) API
-- Intercept request and response
-- Transform request and response data
-- Cancel requests
-- Automatic transforms for JSON data
-- Client side support for protecting against [XSRF](http://en.wikipedia.org/wiki/Cross-site_request_forgery)
+
+
 - 从浏览器创建XMLHttpRequest
 - 从node.js创建http请求
 - 支持Promise API
@@ -19,13 +13,7 @@
 
 # 拦截请求与响应
 
-\lib\core\Axios.js
 
-18
-
-19
-
-46
 
 You can intercept requests or responses before they are handled by `then` or `catch`.
 
@@ -65,7 +53,9 @@ var instance = axios.create();
 instance.interceptors.request.use(function () {/*...*/});
 ```
 
+**Promise then() 方法回顾**
 
+> axios作为基于Promise的请求封装，其拦截器是通过`then`方法实现的，通过[教程](http://es6.ruanyifeng.com/#docs/promise#Promise-prototype-then)我们先简单回顾一下该方法
 
 Promise 实例具有`then`方法，也就是说，`then`方法是定义在原型对象`Promise.prototype`上的。它的作用是为 Promise 实例添加状态改变时的回调函数。前面说过，`then`方法的第一个参数是`Resolved`状态的回调函数，第二个参数（可选）是`Rejected`状态的回调函数。
 
