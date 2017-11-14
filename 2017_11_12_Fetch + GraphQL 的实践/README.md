@@ -1,10 +1,12 @@
+# Fetch + GraphQL 的实践
+
 > 本文针对在 React Native 中通过 fetch 访问 GitHub GraphQL API 这一场景，构建了应用的模型层网络请求模块，探索了 HTTP 与 GraphQL 分离、内置异常处理等理念的实践。
 >
 > 欢迎关注我的专栏： [熵与单子的代码本](https://zhuanlan.zhihu.com/c_90568250) 。
 
 最近终于有时间，开始做酝酿已久的个人项目： Gitview （ [项目地址](https://github.com/entronad/gitview) ）。
 
-Gitview 的定位是：“ GitHub 数据可视化客户端 ”；主要功能包括 GitHub 基本使用、项目数据可视化对比、源码阅读这三块，这是平时我使用 GitHub 时，很希望在手机上能实现的需求。准备使用 React Native 来做，由于这是头一次尝试 React Native 技术栈，本着小步迭代的原则，先从基本的数据可视化功能做起。
+Gitview 的定位是：“ GitHub 数据可视化客户端 ”；主要功能包括 GitHub 日常使用、版本库数据可视化对比、源码阅读这三块，这是平时我使用 GitHub 时，很希望在手机上能实现的需求。准备使用 React Native 来做，由于这是头一次尝试 React Native 技术栈，本着小步迭代的原则，先从基本的数据可视化功能做起。
 
 搭建完项目后，首先着手的就是模型层的网络请求模块了。在 React Native 中网络请求通过 fetch 发起，为了使用方便，需要进行一些封装。由于 GraphQL 查询方式的特殊性，封装工作对比传统的 RESTful 接口请求有所不同，以下详细讲述在此过程中尝试的一些实践。
 
