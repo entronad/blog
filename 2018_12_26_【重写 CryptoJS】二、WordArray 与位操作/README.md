@@ -8,9 +8,9 @@
 
 # WordArray 解析
 
->  *注：以下所有代码为[entronad/crypto-es](http://link.zhihu.com/?target=https%3A//github.com/entronad/crypto-es)中重写过的代码*
+>  *注：以下所有代码为[entronad/crypto-es](http://link.zhihu.com/?target=https%3A//github.com/entronad/crypto-es)中的重写代码*
 
-WordArray的定义位于core.js中
+WordArray的定义位于core.js中：
 
 ```
 export class WordArray extends Base {
@@ -26,6 +26,13 @@ export class WordArray extends Base {
 }
 ```
 
-它有两个成员变量，一个是words，为32位有符号整数构成的数组，通过按顺序拼接数组中的数，就组成了比特序列。JavaScript中32位有符号整数是通过补码转换为二进制的，不过在这里我们不需要关注这点，因为这个整数的值对于我们是没有意义的，实际使用中，比特序列更多的是用字节作单位，或用16进制数表示，因此我们只需要知道32位等价于4个字节，等价于8个16进制数。
+它直接继承自Base，有两个成员变量，一个是words，为32位有符号整数构成的数组，通过按顺序拼接数组中的数，就组成了比特序列。JavaScript中32位有符号整数是通过补码转换为二进制的，不过在这里我们不需要关注这点，因为这个整数的值对于我们是没有意义的，实际使用中，比特序列更多的是用字节作单位，或用16进制数表示，因此我们只需要知道32位等价于4个字节，等价于8个16进制数。
 
 编码算法的对象是字符，因此实际比特序列长度都是整字节的，即8的倍数，但不一定是32的倍数，因此仅通过words数组是不能反映比特序列实际长度的，最后可能有多余位，因此WordArray有第二个成员变量sigBytes，表示实际有用的字节数（significant bytes）。
+
+可通过直接传入这两个字段构建实例：
+
+```
+const wordArray = CryptoES.lib.WordArray.create([0x00010203, 0x04050607], 6);
+```
+
