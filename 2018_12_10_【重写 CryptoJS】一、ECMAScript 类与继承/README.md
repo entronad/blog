@@ -2,14 +2,14 @@
 
 无论是前端还是后端，信息的加解密、摘要校验是常常碰到的需求，开发中一旦涉及到敏感数据，什么 MD5 、 Base64 、 AES 算法基本上都是要来上一套的。
 
-在 JavaScript 的各种加密算法工具库中， [CryptoJS](https://code.google.com/archive/p/crypto-js/) 以其全面的功能、良好的通用性，一直是首选。它诞生较早，主仓库的代码还是托管在 Google Code 上，虽然后续也被移植到了 npm 上，持续有维护和更新，但由于历史原因，还是有几点在现在看来不太合时宜：
+在 JavaScript 的各种加密算法工具库中， [CryptoJS](https://code.google.com/archive/p/crypto-js/) 以其全面的功能、良好的通用性，一直是首选。它诞生较早，主仓库的代码还是托管在 Google Code 上，虽然后续也被移植到了 npm 上，但已有三年未更新。由于历史原因，有几点在现在看来不太合时宜：
 
 - 对象采用一套自己实现的原型继承（ prototypal inheritance ）系统
-- 通过名为 Wordarray 的自定义类以 32 位整数的方式进行位操作
+- 文件采用立即执行函数表达式（IIFE）输出对象
 
-在 ES6 之前的年代里，这两点还是很巧妙和创新的，规避了 JavaScript 语言本身的缺点，同时也保证了浏览器兼容性和开箱即用。不过既然新的 ECMAScript 规范已经添加了类定义和 ArrayBuffer ，解决了原本的问题，我想尝试利用最新的 ECMAScript 特性对 CryptoJS 进行实验性的重写。
+在 ES6 之前的年代里，这两点规避了 JavaScript 语言本身的缺点，同时也保证了浏览器兼容性和开箱即用。不过既然新的 ECMAScript 规范已经添加了类定义和 Module 体系 ，解决了原本的问题，我想尝试利用最新的 ECMAScript 特性对 CryptoJS 进行实验性的重写。
 
-重写的项目定名为 [CryptoES](https://github.com/entronad/crypto-es) ，既然是实验性的，生产应用和兼容性等就不多作考虑，对使用场景的定义为：满足 ECMAScript 的最新标准（ 2018 ），比如模块采用 ECMAScript Module 而非 CommonJs ；成员变量定义还是提案就先不用。在 Babel 、 loader hook 的帮助下代码已经能在各种环境下了，未来随着 ES 规范的普及，可直接使用的场景会更多。
+重写的项目定名为 [CryptoES](https://github.com/entronad/crypto-es) ，既然是实验性的，兼容性就不多作考虑，对使用场景的定义为：满足 ECMAScript 的最新标准（ 2018 ），比如模块采用 ECMAScript Module 而非 CommonJs ；成员变量定义还是提案就先不用。在 Babel 、 loader hook 的帮助下代码已经能在各种环境下了，未来随着 ES 规范的普及，可直接使用的场景会更多。
 
 此外，既然是重写，还要保证所有使用接口不变。
 
