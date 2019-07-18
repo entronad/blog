@@ -10,7 +10,7 @@
 
 根据标准，在含有位操作符的运算中，不管是什么类型的操作数，都通过 ToInt32() 转换为 32 位有符号整数，然后将其当做 32 位的比特序列进行位运算，运算结果返回也为 32 位有符号整数。因此，通过拼接 32 位有符号整数，就可以实现“对一段连续的比特序列进行位操作”的功能了。
 
-正是基于这样的原理， CryptoJs 实现了名为 WordArray 的类，作为“一段连续比特序列”的抽象进行各种位操作。 WordArray 是 CryptoJs 中最核心的一个类，所有主要算法的实际操作对象都是 WordArray 对象。理解 WordArray 是理解 CryptoJs 各算法的基础，也为今后使用 ArrayBuffer 重写的前提。
+正是基于这样的原理， CryptoJs 实现了名为 WordArray 的类，作为“一段连续比特序列”的抽象进行各种位操作。 WordArray 是 CryptoJs 中最核心的一个类，所有主要算法的实际操作对象都是 WordArray 对象。理解 WordArray 是理解 CryptoJs 各算法的基础。
 
 WordArray 的定义位于 core.js 中：
 
@@ -53,7 +53,7 @@ clamp() {
 }
 ```
 
- clamp 意指压缩，作用是移除 words 中不是有效的字节（ insignificant bits ）。前段全是有效字节的 word 直接保留，末段完全没有有效字节的 word 通过 `words.length = Math.ceil(sigBytes / 4)` 移除。
+ clamp 意指压缩，作用是移除 words 中不是有效的字节（ insignificant bytes ）。前段全是有效字节的 word 直接保留，末段完全没有有效字节的 word 通过 `words.length = Math.ceil(sigBytes / 4)` 移除。
 
 比较麻烦的是中间不全是有效字节的一个分界 word 。首先算出要去除的位数： `(32 - (sigBytes % 4) * 8)` ，对 `0xffffffff` 左移该位数获得一个 32 位的掩码，然后通过 `sigBytes >>> 2` （相当于整除 4 ）找到分界 word 下标，通过与掩码取与将无效字节置 0 。
 
