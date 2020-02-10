@@ -1,6 +1,6 @@
-> 原文：[The Power of WebViews in Flutter](https://medium.com/flutter/the-power-of-webviews-in-flutter-a56234b57df2) 
+> [flutter_echarts](https://github.com/entronad/flutter_echarts) 深度的依赖 Flutter 团队的官方 WebView 插件，本文介绍了此 WebView 插件，特别是提了 WebView 中 Controller 、手势捕获、key等几个问题，比较突出重点，文中的示例项目也比较好，值得一看。
 >
-> 一年前调研的时候，发现 Flutter 还没有内联 WebView 这样一个很关键的组件。当时记得在一个盖的很高的 issue 里，开发组表示为了多端表现一致，他们很想让 Flutter 自带一个统一的 web 解析模块，而不甘心仅仅是分别调用 ios 和 Android 各自原生的 WebView，毫无疑问这个技术方案遇到很大的困难。现在看来是梦想向现实妥协了，现在官方推出的内联 WebView 是以插件的形式调用原生组件。
+> 原文：[The Power of WebViews in Flutter](https://medium.com/flutter/the-power-of-webviews-in-flutter-a56234b57df2) 
 
 你是否想要在 app 开发这样的功能：无需打开手机自带的浏览器就可以展示网页？或者你已经在网站上实现了一套安全的支付流程，不想再在移动端重写一遍——毕竟付款是个敏感的业务，你可不想一半的钱最后都意外落到“保护[海怪](https://en.wikipedia.org/wiki/Kraken)基金会”了。只有我一个人这样想吗？终于， Flutter 团队创建了一个 [非常好用的插件](https://pub.dev/packages/webview_flutter) ，让你能在 app 中引入 WebView 实现这些功能。
 
@@ -72,4 +72,51 @@ return WebView(
 );
 ```
 
-如果你完整的看过 [Boring Flutter Development Show](https://www.youtube.com/playlist?list=PLOU2XLYxmsIK0r_D-zWcmJ1plIcDNnRkK) ，你可能
+如果你完整的看过 [Boring Flutter Development Show](https://www.youtube.com/playlist?list=PLOU2XLYxmsIK0r_D-zWcmJ1plIcDNnRkK) ，你应该看过我们开发 Kraken News，即 *Hacker* News Reader App 。
+
+![2](2.gif)
+
+为了演示 app 上下文中的手势捕获，我将 Hacker News app 改为部分网页作为“预览”展示。让用户垂直滚动链接的页面来决定是否在单独的新页面中打开进行深度阅读。
+
+![3](3.gif)
+
+Hacker News reader app 的代码见 [这个 repo](https://github.com/efortuna/hn_app/blob/master/lib/main.dart) （这里展示 `_buildItem`）。
+
+然而，如果这个 WebView 所在的 widget 只捕获到你不关心的手势，则不需要 gesture detector 。比如，一个 PageController 只响应水平拖动手势，你希望 WebView 能够垂直滚动，你可以这样写：
+
+```
+PageView(children: [
+  WebView(initialUrl: urlOne),
+  WebView(initialUrl: urlTwo),
+  WebView(initialUrl: urlThree),
+]));
+```
+
+![4](4.gif)
+
+# 你的 WebView 也许需要一个参数 key
+
+你也许已经见识过 Flutter 代码构造函数中无处不在的可选参数 key 了。当你的 app 中有多个同类型的  stateful widget 需要移除、添加、重载时就需要 key 。如你所见，WebView 是 stateful widget （状态包括当前页面和浏览器历史）。所以如果你的 app 中有多个 WebView ，你可能需要添加参数 key。
+
+Hacker News app 中就有这样的一个例子！这是在没有 key 的情况下切换标签会发生的情况：
+
+![5](5.gif)
+
+可以看到，当切换标签，标题 “Interview with Alan Kay” 展开了，但是 webview 还是显示的 BBC 关于 Virgin Galactic 的页面！给最顶层的集合 widget 添加 key 可以修复这个问题（此例中为 `ExpansionTitle`）：
+
+![7](7.gif)
+
+关于 key 如何能解决这个问题的简单解释是当 Flutter 切换 展示的文章列表时，看起来每套文章都是由包含 ExpansionTitle 项的 ListView 构成。Flutter 有一个快速比对算法检查 widget 的类型和 key 以避免不必要的屏幕重绘。如果没有 key，由于每个列表的所有 widget 类型都一样，stateless 项（比如标题链接）全都会更新，但 statefull 组件，（比如 ExpansionTitle 的展开状态和网站的 URL）不会重绘。添加 key 可以解决这个问题。
+
+类似的，如果你在 [Hero](https://flutter.io/docs/development/ui/animations/hero-animations) widget 的上下文中使用 WebView，你需要一个全局 key，让 Flutter 知道这两个 WebView 实际上是一样的而不需要重新渲染第二个。
+
+# 还有几件需要记住的事情
+
+在我们添加了波兰语之后，当前 WebView 插件还处在开发者预览阶段，也就是说如果你想在 iOS 上使用 webview 插件，需要在 `ios/Runner/Info.plist` 的 `<dict>` 中添加：
+
+`<key>io.flutter.embedded_views_preview</key><string>yes</string>` [正如这个 GitHub issue 所说的](https://github.com/flutter/flutter/issues/19030#issuecomment-437534853)
+
+还有一个社区提供的 WebView 插件，但它没有 Flutter 团体提供的以上插件的全部功能。它只是简单的在一个 native view 中展示网页，并没有集成到 Flutter widget 树中。所以它不允许将 WebView 与其它任何的组件组合。使用本文描述的 [webview_flutter 插件](https://pub.dartlang.org/packages/webview_flutter) 可以避免这一问题。
+
+谢谢大家！把 WebView 添加到你的 Flutter app 中吧。同时也给海怪一些爱。
+

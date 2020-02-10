@@ -96,9 +96,17 @@ const liquidPlugin = r'''
 ''';
 ```
 
+**captureAllGestures**
+
+*bool*
+
+*( default: false )*
+
+Whether the chart captures all gestures. Setting it ture is usefull when handling 3D rotation and data zoom bars. Note that will prevent containers like ListViews to act to gestures on the charts.
+
 ---
 
-These are the all 4 properties of flutter_echarts. Other things like when to update charts are made by inside mechanisms. This makes flutter_echarts looks just like a simple presentational StatelessWidget. Users just need to be famliar with Echarts and no additional learning.
+These are the all 5 properties of flutter_echarts. Other things like when to update charts are made by inside mechanisms. This makes flutter_echarts looks just like a simple presentational StatelessWidget. Users just need to be famliar with Echarts and no additional learning.
 
 A full example is here: [flutter_echarts_example](https://github.com/entronad/flutter_echarts/tree/master/example) .
 
