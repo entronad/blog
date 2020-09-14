@@ -231,3 +231,10 @@ chart.on('click', (params) => {
 });
 ```
 
+# 展望
+
+当然了，通过 WebView 借用 Echarts 进行数据可视化确实是权宜之计，在性能和兼容性上终究不能做到完美。
+
+近年来，前端数据可视化也有了长足的进步， [图形语法(Grammar of Graphics)](https://www.springer.com/us/book/9780387245447) 的理念逐渐被引入到前端的数据可视中，诞生了像阿里的 [G2](https://g2.antv.vision/zh) ，微软的 [Chart Parts](https://microsoft.github.io/chart-parts/) 的实践。
+
+后续我正在做一个基于图形语法的 Flutter 原生可视化库： [Graphic](https://github.com/entronad/graphic) ，欢迎关注。
