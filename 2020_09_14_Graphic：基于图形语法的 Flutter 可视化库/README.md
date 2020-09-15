@@ -2,7 +2,7 @@
 >
 > [Repository](https://github.com/entronad/graphic)
 >
-> [pub.dev](https://pub.dev/packages/garphic)
+> [pub.dev](https://pub.dev/packages/graphic)
 
 # 背景
 
