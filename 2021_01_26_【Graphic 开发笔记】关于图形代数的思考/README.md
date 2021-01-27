@@ -1,8 +1,8 @@
 > 基于图形语法的 Flutter 可视化库：[Graphic](https://github.com/entronad/graphic)
 
-图形代数（graphics algebra）是图形语法的灵魂之一，但遗憾的是除了 [GPL](https://www.ibm.com/support/knowledgecenter/SSLVMB_sub/statistics_reference_project_ddita/gpl/gpl_intro_algebra.html) 外好像还没有看到哪个图形语法可视化库实现了**真正的**图形代数。Graphic 中目前的图形语法也是形同虚设的，只是简单通过” \* “符号连接字段名，本质上只是个字段名数组，在各 Shape 中预置对此数组的按序处理。
+图形代数（graphics algebra）是图形语法的核心之一，但遗憾的是除了 [GPL](https://www.ibm.com/support/knowledgecenter/SSLVMB_sub/statistics_reference_project_ddita/gpl/gpl_intro_algebra.html) 外好像还没有其它可视化库实现了真正的图形代数。Graphic 中目前的图形语法也是形同虚设的，只是简单通过” \* “符号连接字段名，本质上只是个字段名数组。
 
-作为一个开发者，能切身体会图形代数被舍弃的原因：它由众多抽象晦涩的概念和联系构成，哪怕对其中的一点没有理解，也不禁让你怀疑它能否满足可视化库的各种需求。不过图形代数经受了 GPL 的考验，Wilkinson 本人也充满信心。作为图形语法的灵魂之一，值得深入研究。
+开发可视化库，能切身体会图形代数被舍弃的原因：它由众多抽象晦涩的概念构成，又彼此关联，稍有不了解，就不禁让你怀疑它的完备性。不过图形代数经受了 GPL 的考验，Wilkinson 本人也充满信心。作为图形语法的核心之一，图形代数值得深入研究。
 
 以下记录我对图形代数的几点思考：
 
@@ -28,8 +28,6 @@
 
 因此，值得注意的是，图形表达式输入的操作数是 varset，输出结果是 varset 的 tuple。
 
-# 次数与维度
-
 # 有且仅有三种运算符
 
 图形语法中的三种运算符：cross (\*)、nest (/)、blend (+)，是否就能满足所有情况了呢？
@@ -43,11 +41,9 @@
 AntV 的做法是，将 `y` 定义为这两个值构成的 tuple：
 
 ```
-var data = [{
-  x: '分类一',
-  y: [76, 100]
-},
-...
+var data = [
+  {x: '分类一',y: [76, 100]},
+  ...
 ];
 ...
 chart.interval().position('x*y');
@@ -63,8 +59,30 @@ chart.interval().position('x*y');
 
 不过后来我发现，Wilkinson 在《图形语法》中指出了，在书的第一版中他也是认为 blend 具有交换性，后来他也意识到对于很多几何元素，在 blend 中也需考虑顺序，因此第二版中重新规定了所有图形代数运算符都不具有交换性：
 
-> The first edition asserted commutativity for the blend operator. This is easy to show for setwise operations in the above notation (the proof is left to the reader). Nevertheless, there are certain geometric elements (path, for instance), that are order-dependent with respect to blend. Rather than place restrictions on blends, we prefer to make graphics algebra noncommutative. Our parser made no use of commutativity, so nothing changes.  
+> The first edition asserted commutativity for the blend operator. This is easy to show for setwise operations in the above notation (the proof is left to the reader). Nevertheless, there are certain geometric elements (path, for instance), that are order-dependent with respect to blend. Rather than place restrictions on blends, we prefer to make graphics algebra noncommutative. 
 
 解决了这个疑虑后，我确实相信诚如 Wilkinson 所强调的：图形代数有且仅有三种运算符。
 
+# 次数与维度
+
+图形代数的表达式和一般代数类似，有代数形式（algebraic form）和次数（order）的概念。
+
+Varset 只有通过 cross 结合才会增加次数。通过 nest 结合形成的是 factor，不增加次数。Blend 将项（term）结合为多项式（polynominal），也不增加次数。
+
+图形代数表达式的次数，和 aesthetic 的维度的关系比较微妙。在 GPL 文档中强调，aesthetic 的最终形式，是由代数表达式和坐标系共同决定的。
+
+比如 `x*y*z` 的次数是3，在三维坐标系中就对应了三维坐标，而在二维坐标系中，最后一个 z 会形成分面（facet）。
+
 # 图形代数与数据查询语言
+
+数据库查询语言本质上也是实现的某种代数。关系型数据查询语言（比如常见的 SQL）实现的是关系代数（relational algebra）。图形代数与关系代数有密切的关系，但也有区别。
+
+那为什么图形语法不直接使用现有的数据库查询语言（比如 SQL）呢。Wilkinson 列出了以下理由：
+
+- 两者的需求还是有各自的特点的，比如 SQL 中的 join、nest 满足交换性，但是图形代数中就不满足。
+- 将图形代数系统置于数据库查询中将丢失掉关于图形对象的信息。
+- 数据库系统并没有充分考虑动态交互，比如由于事务的存在，在关系型数据库系统中实现动态交互很麻烦且低效。
+
+当然，抛开以上不同，我们还是应该关注两者的联系。一个好的图形代数系统的实现应该能够提供接口兼容数据查询语言的函数，关系代数的模型也有助于我们编写图形代数的程序。
+
+最重要的一点，图形代数与数据查询语言的关系有助于我们理解图形语法的本质和目标。个人觉得，图形语法的目的就是为了代数化定义数据可视化的本质，为数学证明、程序实现、智能训练提供基础，实现“输入查询，输出图形”。
