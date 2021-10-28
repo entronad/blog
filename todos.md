@@ -1,11 +1,10 @@
-# 论文
+声明式图形语法（画饼）
 
-diff
+图形代数
 
-sagas
+扇区圆角画logo
 
-echarts
+ticks属于scale还是axis
 
-曲线移动https://www.geometrictools.com/Documentation/MovingAlongCurveSpecifiedSpeed.pdf
+数据流图架构
 
-http://colah.github.io/posts/2015-08-Understanding-LSTMs/
