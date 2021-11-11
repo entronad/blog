@@ -78,7 +78,13 @@ coord: PolarCoord()
 
 **度量**
 
-第一个问题是
+第一个问题是，扇区半径的比例，似乎`sales` 数据的比例不一样。
+
+要说明这个问题，就涉及到图形语法中的一个重要概念：度量（[Scale](https://pub.dev/documentation/graphic/latest/graphic/Scale-class.html)）。原始数据的值可能是数值、字符串、时间，哪怕同为数值，尺度也可能相差好几个数量级。因此图表使用它们前，需要将他们统一变换成 `[0, 1]` 区间上的归一化的值，或 0, 1, 2, 3... 这样的序数。这个过程就称之为度量。
+
+每个变量都有一个对应的度量，在 Variable 的 `scale` 字段中设置。对于数值，默认的 [LinearScale](https://pub.dev/documentation/graphic/latest/graphic/LinearScale-class.html) 变换范围会根据原始数据集确定，因此最小值不一定是 0 。这对于柱状图来说，能让图形很好的凸显高度差，但对于玫瑰图就不太合适了，因为人们倾向于认为半径反映的是比例关系。
+
+因此，需要手动设置 [LinearScale](https://pub.dev/documentation/graphic/latest/graphic/LinearScale-class.html) 变换范围的最小值为0。
 
 ```dart
 'sales': Variable(
@@ -86,8 +92,6 @@ coord: PolarCoord()
   scale: LinearScale(min: 0),
 ),
 ```
-
-
 
 **具象属性**
 
