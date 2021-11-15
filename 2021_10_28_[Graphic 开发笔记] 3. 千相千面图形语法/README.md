@@ -50,13 +50,13 @@ Chart(
 
 # 几何元素
 
-图形语法最重要的特点是区分了抽象的数据图（Graph）和具体的图形（Graphic）。
+图形语法最重要的特点是区分了抽象的数据图（graph）和具体的图形（graphic）。
 
-比如，数据描述的是一段区间（Interval）还是一个单独的点（Point），这称之为 Graph；而在图上是表现为长条还是三角，多高多宽，这称之为 Graphic。生成 Graph 和 Graphic 的环节分别被称之为几何（Geometry）和具象（Aesthetic）。
+比如，数据描述的是一段区间（interval）还是一个单独的点（point），这称之为 graph；而在图上是表现为长条还是三角，多高多宽，这称之为 graphic。生成 graph 和 graphic 的环节分别被称之为几何（geometry）和具象（aesthetic）。
 
-Graph 和 Graphic 的概念，触达了数据与图形之间的本质关系，是图形语法跳出了传统图表分类束缚的关键。
+Graph 和 graphic 的概念，触达了数据与图形之间的本质关系，是图形语法跳出了传统图表分类束缚的关键。
 
-而承载这两者定义称为几何元素（[GeomElement](https://pub.dev/documentation/graphic/latest/graphic/GeomElement-class.html)）。它的类型决定了 Graph，分为：
+而承载这两者定义称为几何元素（[GeomElement](https://pub.dev/documentation/graphic/latest/graphic/GeomElement-class.html)）。它的类型决定了 graph，分为：
 
 - [PointElement](https://pub.dev/documentation/graphic/latest/graphic/PointElement-class.html) ：点
 - [LineElement](https://pub.dev/documentation/graphic/latest/graphic/LineElement-class.html)：点连成的线
