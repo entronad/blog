@@ -198,10 +198,11 @@ transforms: [
 
 定义变量与维度的关系，需要用到图形代数（graphic algebra）。
 
-图形代数通过一个表达式，用运算符连接变量集合 [Varset](https://pub.dev/documentation/graphic/latest/graphic/Varset-class.html) ，来定义变量之间的关系，以及它们如何分配给各维度。目前 [Graphic](https://github.com/entronad/graphic) 中包含两种运算符：
+图形代数通过一个表达式，用运算符连接变量集合 [Varset](https://pub.dev/documentation/graphic/latest/graphic/Varset-class.html) ，来定义变量之间的关系，以及它们如何分配给各维度。图形代数有三种运算符：
 
 - `*`：称为 cross，将两边的变量按顺序分配给不同的维度。
 - `+`：称为 blend，将两边的变量按顺序分配给同一个维度。
+- `/`：称为 nest，按右边的变量对所有数据进行分组
 
 我们需要将 `category` 和转换得来的 `percent` 变量分别分配给定义域和值域两个维度，得益于 Dart 的类运算符重载，[Graphic](https://github.com/entronad/graphic) 通过 [Varset](https://pub.dev/documentation/graphic/latest/graphic/Varset-class.html) 类实现所有图形代数运算，因此图形代数通过 `position` 定义如下：
 
@@ -217,12 +218,12 @@ position: Varset('category') * Varset('percent')
 
 每个弧段的长度处理完毕了，接着就是要“拼接”它们了。拼接的第一步，是在角度上将它们位置调整到首尾相连。
 
-这种位置调整，通过 [Modifier](https://pub.dev/documentation/graphic/latest/graphic/Modifier-class.html) 进行定义。调整针对的对象不是单个的数据项，所以我们要先将所有的数据按照 `category` 进行分组，对于示例的数据，这样分组后每个数据项就是一组。然后我们设置“堆叠调整”（[StackModifier](https://pub.dev/documentation/graphic/latest/graphic/StackModifier-class.html)）：
+这种位置调整，通过 [Modifier](https://pub.dev/documentation/graphic/latest/graphic/Modifier-class.html) 进行定义。调整针对的对象不是单个的数据项，所以我们要先将所有的数据按照 `category` 进行分组，对于示例的数据，这样分组后每个数据项就是一组。分组通过图形代数中的 nest 运算符定义。然后我们设置“堆叠调整”（[StackModifier](https://pub.dev/documentation/graphic/latest/graphic/StackModifier-class.html)）：
 
 ```dart
 elements: [IntervalElement(
   ...
-  groupBy: 'category',
+  position: Varset('category') * Varset('percent') / Varset('category'),
   modifiers: [StackModifier()],
 )]
 ```
@@ -245,7 +246,7 @@ coord: PolarCoord(
   dimCount: 1,
 )
 ...
-position: Varset('percent')
+position: Varset('percent') / Varset('category')
 ```
 
 这样各个弧段就无差别的撑满整个半径范围，饼图绘制完成：
@@ -275,7 +276,7 @@ Chart(
     ),
   ],
   elements: [IntervalElement(
-    position: Varset('percent'),
+    position: Varset('percent') / Varset('category'),
     groupBy: 'category',
     modifiers: [StackModifier()],
     color: ColorAttr(
