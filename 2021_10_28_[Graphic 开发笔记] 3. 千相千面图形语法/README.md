@@ -133,7 +133,7 @@ coord: PolarCoord()
 
 - 直接通过 `value` 指定属性值。
 - 通过 `variable`、`values`、`stops` 指定关联的变量，以及目标属性值，变量值根据类型的不同将被插值或索引映射为属性值。这种属性称为通道属性（[ChannelAttr](https://pub.dev/documentation/graphic/latest/graphic/ChannelAttr-class.html)）。
-- 通过 `encode` 直接定义数据项映射属性值的方法。
+- 通过 `encoder` 直接定义数据项映射属性值的方法。
 
 在示例中，我们分别通过 `color` 和 `label` 为每个扇面配置不同的颜色和标签：
 
@@ -144,7 +144,7 @@ elements: [IntervalElement(
     values: Defaults.colors10,
   ),
   label: LabelAttr(
-    encode: (tuple) => Label(
+    encoder: (tuple) => Label(
       tuple['category'].toString(),
     ),
   ),
@@ -175,13 +175,13 @@ coord: PolarCoord(transposed: true)
 
 # 变量转换
 
-在饼图中，所有扇面加起来刚好构成一个圆周，每个扇面所占的半径是这个数据项在总和中的占比。而上图中所有弧段拼接起来，显然超过了一个圆周。
+在饼图中，所有扇面加起来刚好构成一个圆周，每个扇面所占的弧长是这个数据项在总和中的占比。而上图中所有弧段拼接起来，显然超过了一个圆周。
 
-一种办法是，我们将 `salse` 的度量的区间设置为 0 至所有 `salse` 值之和，那样恰好每个 `salse` 值经过度量之后就是它在总和中的占比。但对于动态的数据，我们在定义图表时往往并不知道实际数据是多少。
+一种办法是，我们将 `sales` 的度量的区间设置为 0 至所有 `sales` 值之和，那样恰好每个 `sales` 值经过度量之后就是它在总和中的占比。但对于动态的数据，我们在定义图表时往往并不知道实际数据是多少。
 
-还有一种办法是，如果值域变量就是每个 `salse` 值在总和中的占比，那只要定义这个变量度量的原始区间为`[0, 1]` 就可以了。
+还有一种办法是，如果值域变量就是每个 `sales` 值在总和中的占比，那只要定义这个变量度量的原始区间为`[0, 1]` 就可以了。
 
-这时可以用到变量转换（[VariableTransform](https://pub.dev/documentation/graphic/latest/graphic/VariableTransform-class.html)），它能对现有的变量数据进行统计转换，修改变量数据或生成新的变量。这里使用 [Proportion](https://pub.dev/documentation/graphic/latest/graphic/Proportion-class.html)，它算出每个 `salse` 在总和中的占比，生成新的 `percent` 变量，并为这个变量设置原始区间的 `[0, 1]` 的度量：
+这时可以用到变量转换（[VariableTransform](https://pub.dev/documentation/graphic/latest/graphic/VariableTransform-class.html)），它能对现有的变量数据进行统计转换，修改变量数据或生成新的变量。这里使用 [Proportion](https://pub.dev/documentation/graphic/latest/graphic/Proportion-class.html)，它算出每个 `sales` 在总和中的占比，生成新的 `percent` 变量，并为这个变量设置原始区间的 `[0, 1]` 的度量：
 
 ```dart
 transforms: [
@@ -194,7 +194,7 @@ transforms: [
 
 # 图形代数
 
-在设置完变量转换后，我们遇到了一个新的问题。原来 [Tuple](https://pub.dev/documentation/graphic/latest/graphic/Tuple.html) 中只有 `category` 和 `salse` 两个变量，它们恰好可以分配给定义域和值域两个维度，不言自明。但现在多出了个 `percent` 变量，三个栗子如何分给两个猴子，那就必须要指定清楚了。
+在设置完变量转换后，我们遇到了一个新的问题。原来 [Tuple](https://pub.dev/documentation/graphic/latest/graphic/Tuple.html) 中只有 `category` 和 `sales` 两个变量，它们恰好可以分配给定义域和值域两个维度，不言自明。但现在多出了个 `percent` 变量，三个栗子如何分给两个猴子，那就必须要指定清楚了。
 
 定义变量与维度的关系，需要用到图形代数（graphic algebra）。
 
@@ -238,7 +238,7 @@ elements: [IntervalElement(
 
 我们观察半径维度，刚刚通过图形代数，将 `category` 这个变量分配给了它，因此每个弧段按顺序落在了不同的“赛道”中。但事实上我们希望半径位置不要有区分，只有角度这一个维度起作用。换言之，我们希望这个极坐标系，是只有角度的一维坐标系。
 
-我们只要指定坐标系的维度数量为 1，同时代数表达式中也只保留 `percent` 一个变量：
+我们只要指定坐标系的维度数量为 1，同时代数表达式中移除 `category`：
 
 ```dart
 coord: PolarCoord(
@@ -284,7 +284,7 @@ Chart(
       values: Defaults.colors10,
     ),
     label: LabelAttr(
-      encode: (tuple) => Label(
+      encoder: (tuple) => Label(
         tuple['category'].toString(),
         LabelStyle(Defaults.runeStyle),
       ),
@@ -297,7 +297,7 @@ Chart(
 )
 ```
 
-在这个过程中，我们通过改变坐标、度量、具象属性、变量转换、图形代数、分组、调整等图形语法定义，使得图形不断变换，得到了传统图表分类中的柱状图、玫瑰图、竞速图、旭日图、饼图。
+在这个过程中，我们通过改变坐标、度量、具象属性、变量转换、图形代数、调整等图形语法定义，使得图形不断变换，得到了传统图表分类中的柱状图、玫瑰图、竞速图、旭日图、饼图。
 
 ![8](8.jpg)
 

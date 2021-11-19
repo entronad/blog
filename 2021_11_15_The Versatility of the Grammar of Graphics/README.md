@@ -102,3 +102,202 @@ Every variable has a responsive scale, which is set in [Variable](https://pub.de
 - [TimeScale](https://pub.dev/documentation/graphic/latest/graphic/TimeScale-class.html): normalizes a range of time to `[0, 1]` numbers, continuous.
 - [OrdinalScale](https://pub.dev/documentation/graphic/latest/graphic/OrdinalScale-class.html): maps strings to natural number indexes in order, discrete.
 
+For numbers, The default [LinearScale](https://pub.dev/documentation/graphic/latest/graphic/LinearScale-class.html) will determine the range by input data, so the range minimum may not be 0. For a bar chart, this makes the chart focus on height differences of bars. But it is not fit for the rose chart, because people tend to regard radius ratios as value ratios.
+
+So, the range minimum of [LinearScale](https://pub.dev/documentation/graphic/latest/graphic/LinearScale-class.html) should be set to 0 manually:
+
+```dart
+'sales': Variable(
+  accessor: (Map map) => map['sales'] as num,
+  scale: LinearScale(min: 0),
+),
+```
+
+# Aesthetic Attribute
+
+The second problem is, the sectors are adjacent so that their colors should be distinguishable. And people prefer to use labels, not axis, to annotate the rose chart.
+
+Attributes for perceiving graphics, like color or label, are called aesthetic attributes. In [Graphic](https://github.com/entronad/graphic) they are:
+
+- `position`
+- `shape`
+- `color`
+- `gradient`
+- `elevation`
+- `label`
+- `size`
+
+Except `position`, each of them are defined in [GeomElement](https://pub.dev/documentation/graphic/latest/graphic/GeomElement-class.html) by corresponding [Attr](https://pub.dev/documentation/graphic/latest/graphic/Attr-class.html) class. According to definition properties, they can be specified in these ways:
+
+- Indicates directly by `value`.
+- Indicates corresponding `variable`, and target attribute `values` and `stopes`. The variable values will be interpolated or mapped to attribute values. These kind of attributes are called [ChannelAttr](https://pub.dev/documentation/graphic/latest/graphic/ChannelAttr-class.html)s.
+- Indicates how a tuple is encoded to an attribute value by `encoder`.
+
+In this example, we specify colors and labels for every sectors:
+
+```dart
+elements: [IntervalElement(
+  color: ColorAttr(
+    variable: 'category',
+    values: Defaults.colors10,
+  ),
+  label: LabelAttr(
+    encoder: (tuple) => Label(
+      tuple['category'].toString(),
+    ),
+  ),
+)]
+```
+
+Thus we get a better rose chart:
+
+![]()
+
+But how to switch the rose chart to a pie chart?
+
+# Transpose Coordinate
+
+Variables of data often have a function relation: `y = f(x)`. We call the x is in the domain dimension, and the y is in the measure dimension. Customarily, for a plane, the rectangle coordinate assigns domain dimension to the horizontal and measure dimension to the vertical; while the polar coordinate assigns domain dimension to the angle and measure dimension to the radius.
+
+A rose pie displays values with radiuses, while a pie chart displays values with angles. So the first step is to switch the correspondence of dimensions. This is called transposing:
+
+```dart
+coord: PolarCoord(transposed: true)
+```
+
+Then the graphics transform to a **racing chart**:
+
+![]()
+
+It seems to get closer to a pie chart.
+
+# Variable Transform
+
+The sectors in a pie chart compose a whole circle, the ratios of arcs to the perimeter is the ratios of values to the sum. But the sum of arcs of the above chart is obviously larger than the perimeter.
+
+One solution is to set the scale range of `sales` between 0 and the sum of all `sales`s, then the scaled `sales` values are the ratios to the sum. But for dynamic data, we usually don't know the values when defining the chart.
+
+Another solution is that if the measure dimension variable is the proportion of `sales`, then we only need to set the scale range to `[0, 1]`.
+
+That is why we need [VariableTransform](https://pub.dev/documentation/graphic/latest/graphic/VariableTransform-class.html). It can apply statistical transforms to current variables, modify the tuples or create new variables. Here we use [Proportion](https://pub.dev/documentation/graphic/latest/graphic/Proportion-class.html), which calculates the proportions of `sales` values and assign them to a new `percent` variable which has a scale of `[0, 1]` range:
+
+```dart
+transforms: [
+  Proportion(
+    variable: 'sales',
+    as: 'percent',
+  ),
+]
+```
+
+# Graphics Algebra
+
+A new problem occurs after we applied the transform. The tuple had only two variables `category` and `sales` before, and they happens can be assigned to the two dimensions respectively. Nothing need to set. But now, an additional variable `percent` is added. How to assign three chestnuts to two monkeys? There needs a clear specification.
+
+To define the relation between variables and dimensions, we need the graphics algebra.
+
+The graphics algebra specifies the variables relations and how they are assigned to dimensions with an expression that connects [Varset](https://pub.dev/documentation/graphic/latest/graphic/Varset-class.html)s (variable set) with operators. There are tree operators:
+
+- `*`: cross, which assigns two operands to two dimensions in order.
+- `+`: blend, which assigns two operands to a same dimension in order.
+- `/`: nest, group all tuples according to the right operand.
+
+We need to assign `category` and transformed `percent` to domain dimension and measure dimension respectively. Benefited form the operator overriding of Dart, [Graphic](https://github.com/entronad/graphic) implements all graphics algebra by the [Varset](https://pub.dev/documentation/graphic/latest/graphic/Varset-class.html) class. So we define `position` as:
+
+```dart
+position: Varset('category') * Varset('percent')
+```
+
+After variable transform and graphics algebra are set, the graphics become:
+
+![]()
+
+# Grouping and Modifier
+
+The arc length of sectors are settled, then we should "splice" them. The first step of splicing is to adjust their positions to end to end.
+
+This position adjusting is specified by [Modifier](https://pub.dev/documentation/graphic/latest/graphic/Modifier-class.html)s. The object of the adjusting is not single tuples, but tuple groups. So we should group the tuples by `category`. Thus for the example data, each group will have a single tuple. The grouping is specified by nest operator of the graphics algebra. Then we can set the [StackModifier](https://pub.dev/documentation/graphic/latest/graphic/StackModifier-class.html):
+
+```dart
+elements: [IntervalElement(
+  ...
+  position: Varset('category') * Varset('percent') / Varset('category'),
+  modifiers: [StackModifier()],
+)]
+```
+
+Since we have made the total arc length equals to the perimeter, the sectors become end to end after stacked, which can be regarded as a **sunrise chart**.
+
+![]()
+
+# Coordinate Dimensions
+
+Since the angles of sectors are in position, there needs only one final step: to inflate the radiuses so that the sectors make a hole pie.
+
+Let's look into the radius dimension. We have just assigned the `category` variable to it by algebra, so the sectors fall into different "tracks" respectively. But in fact, we don't want they differ in radius dimension and only vary in angles. In another word, we prefer the polar coordinate is a 1D coordinate.
+
+We just need to indicate the coordinate dimension count to 1, and remove `category` form the algebra expression:
+
+```dart
+coord: PolarCoord(
+  transposed: true,
+  dimCount: 1,
+)
+...
+position: Varset('percent') / Varset('category')
+```
+
+Then the sectors inflates the circle radius, and we finished the **pie chart**:
+
+![]()
+
+---
+
+The complete specification is:
+
+```D
+Chart(
+  data: data,
+  variables: {
+    'category': Variable(
+      accessor: (Map map) => map['category'] as String,
+    ),
+    'sales': Variable(
+      accessor: (Map map) => map['sales'] as num,
+      scale: LinearScale(min: 0),
+    ),
+  },
+  transforms: [
+    Proportion(
+      variable: 'sales',
+      as: 'percent',
+    ),
+  ],
+  elements: [IntervalElement(
+    position: Varset('percent') / Varset('category'),
+    groupBy: 'category',
+    modifiers: [StackModifier()],
+    color: ColorAttr(
+      variable: 'category',
+      values: Defaults.colors10,
+    ),
+    label: LabelAttr(
+      encoder: (tuple) => Label(
+        tuple['category'].toString(),
+        LabelStyle(Defaults.runeStyle),
+      ),
+    ),
+  )],
+  coord: PolarCoord(
+    transposed: true,
+    dimCount: 1,
+  ),
+)
+```
+
+In this process, we transformed the graphics incessantly by changing the specifications such as the coordinate, scales, aesthetic attributes, variable transforms, and modifiers. And we got a bar chart, a rose chart, a racing chart, a sunrise chart, and a pie chart of traditional chart typologies.
+
+![]()
+
+We can conclude that the Grammar of Graphics jumps out of the constraint of traditional chart typologies, and can generates more visualization graphics with better flexibility and extensibility. More importantly, It reveals the intrinsic relations of different visualization graphics, and provides a theory foundation for data visualization science.
+
