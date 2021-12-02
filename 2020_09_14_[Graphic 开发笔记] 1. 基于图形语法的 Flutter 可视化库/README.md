@@ -1,4 +1,4 @@
-> 本文介绍了一个基于图形语法（Grammar of Graphics）的 Flutter 可视化库：[Grapphic](https://github.com/entronad/graphic)
+> 本文介绍了一个基于图形语法（Grammar of Graphics）的 Flutter 可视化库：[Graphic](https://github.com/entronad/graphic)
 >
 > [Repository](https://github.com/entronad/graphic)
 >
@@ -12,7 +12,7 @@
 
 [fl_chart](https://pub.dev/packages/fl_chart) 是 pub.dev 上目前人气最高的可视化库，它有较为酷炫的设计和动画，是一位 [伊朗帅哥](https://github.com/imaNNeoFighT) 开发的。但是它的个人风格太明显了，不太适用于统计或严肃的场景。
 
-[syncfusion_flutter_charts](https://pub.dev/packages/syncfusion_flutter_charts) 较为完善和专业，但它是一个闭源的商业软件，仅提供收费的使用许可，对于很多开发者来说并不适合。
+[syncfusion_flutter_charts](https://pub.dev/packages/syncfusion_flutter_charts) 较为完善和专业，但它是一个闭源的商业软件，对于很多开发者来说并不适合。
 
 为了构建复杂的可视化图表，我们做过 [flutter_echarts](https://github.com/entronad/flutter_echarts) ，通过 Webview 的方式将 Web 中的 Echarts 引入到 Flutter App 中，满足很多复杂的可视化需求，但是 Webview 在性能和兼容性等方面还是存在诸多问题，对于性能和稳定性要求高的图表，还是需要一个 Flutter 原生的可视化方案。
 
@@ -34,36 +34,30 @@
 
 ![2](2.jpg)
 
-```dart
-graphic.Chart(
-  data: [
-    { 'genre': 'Sports', 'sold': 275 },
-    { 'genre': 'Strategy', 'sold': 115 },
-    { 'genre': 'Action', 'sold': 120 },
-    { 'genre': 'Shooter', 'sold': 350 },
-    { 'genre': 'Other', 'sold': 150 },
-  ],
-  scales: {
-    'genre': graphic.CatScale(
-      accessor: (map) => map['genre'] as String,
-    ),
-    'sold': graphic.NumScale(
-      accessor: (map) => map['sold'] as num,
-      nice: true,
-    )
-  },
-  geoms: [graphic.IntervalGeom(
-    position: graphic.PositionAttr(field: 'genre*sold'),
-    shape: graphic.ShapeAttr(values: [
-      graphic.Shapes.rrectInterval(radius: Radius.circular(5))
-    ]),
-  )],
-  axes: {
-    'genre': graphic.Defaults.horizontalAxis,
-    'sold': graphic.Defaults.verticalAxis,
-  },
-)
-```
+ ```dart
+ Chart(
+   data: [
+     { 'genre': 'Sports', 'sold': 275 },
+     { 'genre': 'Strategy', 'sold': 115 },
+     { 'genre': 'Action', 'sold': 120 },
+     { 'genre': 'Shooter', 'sold': 350 },
+     { 'genre': 'Other', 'sold': 150 },
+   ],
+   variables: {
+     'genre': Variable(
+       accessor: (Map map) => map['genre'] as String,
+     ),
+     'sold': Variable(
+       accessor: (Map map) => map['sold'] as num,
+     ),
+   },
+   elements: [IntervalElement()],
+   axes: [
+     Defaults.horizontalAxis,
+     Defaults.verticalAxis,
+   ],
+ )
+ ```
 
 
 
@@ -82,7 +76,7 @@ graphic.Chart(
 在 Graphic 的实现上，接口和类名的设计主要参考了 AntV。核心概念如下：
 
 - **Geom**：几何标记，组成图表的几何图形
-- **Coord**：坐标系，图表的坐标系，目前有笛卡尔坐标系（Cartesian）和极坐标系（Polar）
+- **Coord**：坐标系，图表的坐标系，目前有笛卡尔坐标系（Rect）和极坐标系（Polar）
 - **Scale**：度量，将数据缩放到 [0, 1] 的区间，以便映射到视觉通道属性
 - **Attr**：视觉通道属性，包括位置、颜色、形状、大小等，值由经过度量变换的数据决定，被应用到几何标记上
 
@@ -98,20 +92,30 @@ Web 生态中的大部分可视化库都是命令式的，绘制图表通过语�
 
 图表之所以分门别类、变化万千，最主要的就是形状这一属性的多样。因此在所有视觉通道中，形状也是最复杂的，形状的可定制化程度决定了可视化库的扩展性。
 
-Graphic 中形状 Shape 这一属性的类型是函数或高阶函数，传入几何标记各视觉通道的属性值，组合出图形对象，供渲染引擎使用。用户可自己编写函数的实现，即自定义的 Shape。
+Graphic 中形状 Shape 这一属性的类型是可自定义的类，传入几何标记各视觉通道的属性值，组合出图形对象，供渲染引擎使用。用户可自己编写子类的实现，即自定义的 Shape。
 
 ```
-List<graphic.RenderShape> triangleInterval(
-  List<graphic.AttrValueRecord> attrValueRecords,
-  graphic.CoordComponent coord,
-  Offset origin,
-) {
-  // Implementation of attrValueRecords => renderShapes
+class TriangleShape extends IntervalShape {
+  @override
+  List<Figure> renderGroup(
+    List<Aes> group,
+    CoordConv coord,
+    Offset origin,
+  ) {
+    ...
+  }
+
+  @override
+  List<Figure> renderItem(
+    Aes item,
+    CoordConv coord,
+    Offset origin,
+  ) {
+    ...
+  }
+
+  @override
+  bool equalTo(Object other) => other is TriangleShape;
 }
 ```
 
-# 展望
-
-目前 Graphic 的开发主要完成了静态的图表。后续将添加交互、动画等特性，以及 Tooltip、legend 等附属组件。
-
-特性和接口尚不稳定，欢迎试用，但应用到生产环境需谨慎。
