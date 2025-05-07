@@ -56,7 +56,7 @@ SelectionUpdater<V> = V Function(
 )
 ```
 
-We can see that the advantage of such structure is that user can control the value status better by the initial value and prior value stored in the operators. 
+We can see that the advantage of such structure is that developers can control the value status better by the initial value and prior value stored in the operators. 
 
 # Interaction Channel
 
@@ -64,7 +64,7 @@ For common cases of interaction, features above are enough. But we introduced *i
 
 The interaction channel is a way for two-way communication with the chart. You can input and output interaction information through it. That is to say, you can manually emit a signal or selection to the chart and get noticed from the chart when a signal or selection occurs. It makes a more flexible and precise control of interaction.
 
-To achieve this, we consider about the idea of Functional Reactive Programming (FRP). Fortunately, the Dart language has a built-in [asynchronous stream system](https://dart.dev/tutorials/language/streams), which is an simple implementation for FRP. The [StreamController](https://api.dart.dev/stable/2.18.3/dart-async/StreamController-class.html) class can play the role of interaction channels.
+To achieve this, we consider about the idea of Functional Reactive Programming (FRP). Fortunately, the Dart language has a built-in [asynchronous stream system](https://dart.dev/tutorials/language/streams), which is a simple implementation for FRP. The [StreamController](https://api.dart.dev/stable/2.18.3/dart-async/StreamController-class.html) class can play the role of interaction channels.
 
 A good field to show the advantage of interaction channels is chart coupling. Think about that there are two different charts, coupling means when interacting with one chart, the other one acts the same, and vice versa.
 

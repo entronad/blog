@@ -32,4 +32,90 @@
 
 [Graphic](https://github.com/entronad/graphic) 的选取规则主要来自 [Vega-Lite 的选取](https://vega.github.io/vega-lite/docs/selection.html)，所以也分为 [IntervalSelection](https://pub.dev/documentation/graphic/latest/graphic/IntervalSelection-class.html) 和 [PointSelection](https://pub.dev/documentation/graphic/latest/graphic/PointSelection-class.html)。
 
-不同于其它的可视化库，[Graphic](https://github.com/entronad/graphic) 中的选取是在数据值空间中检测的，而不是通过图形的相交。
+不同于其它的可视化库，[Graphic](https://github.com/entronad/graphic) 中的选取是在数据值空间中检测的，而不是通过图形的相交。指针的坐标将被转换为各维度上的值，通过这些值在数据中查找结果。这种方法更”数据驱动“，并且在大数据中比图形相交检测效果更好。
+
+总的来讲，信号更底层更灵活，选取更简洁并注重数据。
+
+# 更新器（Updater）
+
+在 [Graphic](https://github.com/entronad/graphic) 中，关于交互如何作用于图表的基本理念是，它们不直接向图表提供值，而是更新图表中已有的参数值并反应式的重新渲染。计算参数值和更新是在不同的算子（operator）中，初始值（通常在定义中指定）将被保存：
+
+![1]()
+
+更新器是根据交换更新属性值的回调函数，例如 [RectCoord.horizontalRangeUpdater](https://pub.dev/documentation/graphic/latest/graphic/RectCoord/horizontalRangeUpdater.html) 或 [Attr.updaters](https://pub.dev/documentation/graphic/latest/graphic/Attr/updaters.html)。由于有两种层级的交互，更新器也对应有两类： [SignalUpdater](https://pub.dev/documentation/graphic/latest/graphic/SignalUpdater.html) 和 [SelectionUpdater](https://pub.dev/documentation/graphic/latest/graphic/SelectionUpdater.html)：
+
+```
+SignalUpdater<V> = V Function(
+  V initialValue,
+  V preValue,
+  Signal signal
+)
+
+SelectionUpdater<V> = V Function(
+  V initialValue
+)
+```
+
+可以看出这种结构的好处是开发者可以通过算子中保存的初始值和前值更好的控制值的状态。
+
+# 交互通道（Interaction Channel）
+
+对于一般的交互情形，以上的特性已经足够了。不过我们引入交互通道以处理高级应用。
+
+交互通道是与图表进行双向通信的途径。可以通过它输入输出信息。也就是说，可以手动向图表发射信号或选取，以及当信号或选取发生时得到通知。它使得我们能更灵活和更精确的控制交互。
+
+我们考虑通过函数反应式编程（Functional Reactive Programming, FRP）来实现它。幸运的是，Dart 语言有内置的[异步流系统](https://dart.dev/tutorials/language/streams)，是 FRP 的一种简单实现。[StreamController](https://api.dart.dev/stable/2.18.3/dart-async/StreamController-class.html) 类可以承担交互通道的角色。
+
+展示交互通道优势的一个领域是图表耦合。考虑有两个不同的图表，耦合的意思是当与其中的一个交互时，另一个也做出同样的反应，反之亦然。
+
+例如，两个图表分别展示一支股票的价格和成交量，当点击一个图表显示辅助线时，另一个上也展示同样的辅助线：
+
+![2]()
+
+只需要将这两个图表共享同一个手势信号通道，它们就会共享所有的手势了，不需要任何额外的输入输出参数：
+
+```
+final priceVolumeChannel = StreamController<GestureSignal>.broadcast();
+
+// the price chart
+Chart(
+  ...
+  gestureChannel: priceVolumeChannel,
+)
+
+// the volume chart
+Chart(
+  ...
+  gestureChannel: priceVolumeChannel,
+)
+```
+
+另一个例子是两个图表总是选中同一天：
+
+![3]()
+
+只需要共享同一个选取通道即可：
+
+```
+final heatmapChannel = StreamController<Selected?>.broadcast();
+
+// the above chart
+Chart(
+  ...
+  elements: [PolygonElement(
+    selectionChannel: heatmapChannel,
+  )]
+)
+
+// the below chart
+Chart(
+  ...
+  elements: [PolygonElement(
+    selectionChannel: heatmapChannel,
+  )]
+)
+```
+
+完整的示例代码见[这里](https://github.com/entronad/graphic/blob/main/example/lib/pages/interaction_channel_dynamic.dart)。
+
+[英文版本](https://itnext.io/how-to-build-interactive-charts-in-flutter-e317492d5ba1)
